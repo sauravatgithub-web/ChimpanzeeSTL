@@ -21,12 +21,13 @@ Planned:
 ---
 
 ## 📂 Project Structure  
+```
 ChimpanzeeSTL/
-│── include/ # Header files (Vector.hpp, etc.)
-│── src/ # Implementation files if separated
-│── tests/ # Example programs testing containers
-│── README.md # This file
-
+    │── include/ # Header files (Vector.hpp, etc.)
+    │── src/ # Implementation files if separated
+    │── tests/ # Example programs testing containers
+    │── README.md # This file
+```
 
 ---
 
