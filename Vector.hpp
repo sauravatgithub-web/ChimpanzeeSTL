@@ -52,13 +52,24 @@ public:
         other.array = nullptr;
     }
 
-    size_t length() const { return size;      }
-    bool empty()    const { return size == 0; }
+    // MEMEBER FUNCTIONS
 
+    size_t size() const { return size;      }
+    bool empty()    const { return size == 0; }
+    T front()       const { return array[0];  }
+    T back()    const { return array[size-1]; }
+    T* data()             { return array;     }
+    const T* data() const { return array;     }
 
     void push_back(const T& elem);
     void pop_back();
+    void clear();
     T at(int index);
+    void resize(int n, T value = 0);
+    void reserve(int n);
+    void shrink_to_fit();
+
+    // void insert()
 
     // OVELOADED OPERATORS
     T& operator[](int index);
@@ -104,8 +115,78 @@ void Vector<T>::pop_back() {
 }
 
 template <class T>
+void Vector<T>::clear() {
+    for(int i = 0; i < (int)size; i++) {
+        array[i].~T();
+    }
+    size = 0;
+}
+
+template <class T>
 T Vector<T>::at(int index) {
     return array[index];
+}
+
+template <class T>
+void Vector<T>::resize(int n, T value = 0) {
+    if(n < (int)capacity) {
+        if(n < (int)size) {
+            while(size > n) {
+                array[size-1].~T();
+                size--;
+            }
+        }
+        else {
+            while(size < n) {
+                array[size] = value;
+                size++;
+            }
+        }
+    }
+    else {
+        capacity = n;
+        T* newArray = T[capacity];
+
+        for(size_t i = 0; i < capacity; i++) {
+            if(i < size) newArray[i] = array[i];
+            else newArray[i] = value;
+        }
+
+        delete[] array;
+        array = newArray;
+    }
+}
+
+template <class T>
+void Vector<T>::reserve(int n) {
+    if(n < (int)capacity) {
+        return;
+    }
+    else {
+        capacity = n;
+        T* newArray = T[capacity];
+
+        for(size_t i = 0; i < size; i++) {
+            newArray[i] = array[i];
+        }
+
+        delete[] array;
+        array = newArray;
+    }
+}
+
+template <class T>
+void Vector<T>::shrink_to_fit() {
+    if(capacity == size) return;
+    capacity = size;
+    T* newArray = T[capacity];
+
+    for(size_t i = 0; i < size; i++) {
+        newArray[i] = array[i];
+    }
+
+    delete[] array;
+    array = newArray;
 }
 
 template <class T>
