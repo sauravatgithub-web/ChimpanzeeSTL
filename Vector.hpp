@@ -152,11 +152,12 @@ public:
     void pop_back();
     void clear();
     T at(int index);
-    void resize(int n, T value = 0);
+    void resize(int n, const T& value = 0);
     void reserve(int n);
     void shrink_to_fit();
 
-    // void insert()
+    void insert(const Iterator& iter, const T& val);
+    void insert(const Iterator& iter, int count, const T& val);
 
     // OVELOADED OPERATORS
     T& operator[](int index);
@@ -215,7 +216,7 @@ T Vector<T>::at(int index) {
 }
 
 template <class T>
-void Vector<T>::resize(int n, T value) {
+void Vector<T>::resize(int n, const T& value) {
     if(n < (int)capacity) {
         if(n < (int)size) {
             while(size > n) {
@@ -274,6 +275,52 @@ void Vector<T>::shrink_to_fit() {
 
     delete[] array;
     array = newArray;
+}
+
+template <class T>
+void Vector<T>::insert(const Iterator& iter, const T& val) {
+    insert(iter, 1, val);
+}
+
+template <class T>
+void Vector<T>::insert(const Iterator& iter, int count, const T& val) {
+    if(iter - begin() >= size) {
+        std::cerr << "Index out of range." << std::endl;
+        std::exit(EXIT_FAILURE);
+    }
+
+    if(capacity >= size + count) {
+        Iterator rit = end() + count - 1;
+        while((int)(rit - iter) >= count) {
+            *rit = *(rit - count);
+            rit--;
+        }
+        for(int i = 1; i <= count; i++) {
+            *rit = val;
+            rit--;
+        }
+    }
+    else {
+        capacity *= 2;
+        T* newArray = new T[capacity];
+
+        Iterator it = begin();
+        while(it != iter) {
+            *(newArray + (int)(it - begin())) = *it;
+            it++;
+        }
+        for(int i = 0; i < count; i++) {
+            *(newArray + i + (int)(iter - begin())) = val;
+        }
+        while(it != end()) {
+            *(newArray + count + (int)(it - begin())) = *it;
+            it++;
+        }
+
+        delete[] array;
+        array = newArray;
+    }
+    size += count;
 }
 
 template <class T>
