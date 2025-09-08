@@ -1,5 +1,7 @@
 # pragma once
+#include <iterator>
 #include <cstddef> 
+#include "ReverseIterator.hpp"
 
 template <class T>
 class Vector {
@@ -52,9 +54,94 @@ public:
         other.array = nullptr;
     }
 
+    // ITERATOR
+    struct Iterator {
+        using iterator_category = std::random_access_iterator_tag;
+        using difference_type   = std::ptrdiff_t;
+        using value_type        = T;
+        using pointer           = T*;
+        using reference         = T&;
+
+        Iterator(pointer ptr) : v_ptr(ptr) {}
+
+        reference operator*() const { return *v_ptr; }
+        pointer operator->() { return v_ptr; }
+
+        Iterator& operator++() { v_ptr++; return *this; }
+        Iterator operator++(int) { Iterator tmp = *this; ++(*this); return tmp; }
+        Iterator& operator--() { v_ptr--; return *this; }
+        Iterator operator--(int) { Iterator tmp = *this; --(*this); return tmp; }
+
+        Iterator operator+(difference_type n) const { return Iterator(v_ptr + n); }
+        Iterator operator-(difference_type n) const { return Iterator(v_ptr - n); }
+        difference_type operator-(const Iterator& other) const { return v_ptr - other.v_ptr; }
+
+        Iterator operator+=(difference_type n) const { v_ptr += n; return *this; }
+        Iterator operator-=(difference_type n) const { v_ptr -= n; return *this; }
+
+        friend bool operator==(const Iterator& a, const Iterator& b) { return a.v_ptr == b.v_ptr; };
+        friend bool operator!=(const Iterator& a, const Iterator& b) { return a.v_ptr != b.v_ptr; };
+        friend bool operator< (const Iterator& a, const Iterator& b) { return a.v_ptr < b.v_ptr; };
+        friend bool operator> (const Iterator& a, const Iterator& b) { return a.v_ptr > b.v_ptr; };
+        friend bool operator<=(const Iterator& a, const Iterator& b) { return a.v_ptr <= b.v_ptr; };
+        friend bool operator>=(const Iterator& a, const Iterator& b) { return a.v_ptr >= b.v_ptr; };
+
+    private:
+        pointer v_ptr;
+    };
+
+    struct ConstIterator {
+        using iterator_category = std::random_access_iterator_tag;
+        using difference_type   = std::ptrdiff_t;
+        using value_type        = T;
+        using pointer           = const T*;
+        using reference         = const T&;
+
+        ConstIterator(pointer ptr) : v_ptr(ptr) {}
+
+        reference operator*() const { return *v_ptr; }
+        pointer operator->() const { return v_ptr; }
+
+        ConstIterator& operator++() { v_ptr++; return *this; }
+        ConstIterator operator++(int) { ConstIterator tmp = *this; ++(*this); return tmp; }
+        ConstIterator& operator--() { v_ptr--; return *this; }
+        ConstIterator operator--(int) { ConstIterator tmp = *this; --(*this); return tmp; }
+
+        ConstIterator operator+(difference_type n) const { return ConstIterator(v_ptr + n); }
+        ConstIterator operator-(difference_type n) const { return ConstIterator(v_ptr - n); }
+        difference_type operator-(const ConstIterator& other) const { return v_ptr - other.v_ptr; }
+
+        ConstIterator operator+=(difference_type n) { v_ptr += n; return *this; }
+        ConstIterator operator-=(difference_type n) { v_ptr -= n; return *this; }
+
+        friend bool operator==(const ConstIterator& a, const ConstIterator& b) { return a.v_ptr == b.v_ptr; };
+        friend bool operator!=(const ConstIterator& a, const ConstIterator& b) { return a.v_ptr != b.v_ptr; };
+        friend bool operator< (const ConstIterator& a, const ConstIterator& b) { return a.v_ptr < b.v_ptr; };
+        friend bool operator> (const ConstIterator& a, const ConstIterator& b) { return a.v_ptr > b.v_ptr; };
+        friend bool operator<=(const ConstIterator& a, const ConstIterator& b) { return a.v_ptr <= b.v_ptr; };
+        friend bool operator>=(const ConstIterator& a, const ConstIterator& b) { return a.v_ptr >= b.v_ptr; };
+
+    private:
+        pointer v_ptr;
+    };
+
+    Iterator begin()  { return Iterator(array); }                              // for non const object
+    Iterator end()    { return Iterator(array + size); }
+    ConstIterator begin() const { return ConstIterator(array); }               // for const object
+    ConstIterator end()   const { return ConstIterator(array + size); }
+    ConstIterator cbegin() const { return ConstIterator(array); }              // const iterators on any
+    ConstIterator cend()   const { return ConstIterator(array + size); }
+
+    ReverseIterator<Iterator> rbegin() { return ReverseIterator<Iterator>(end()); }
+    ReverseIterator<Iterator> rend() { return ReverseIterator<Iterator>(begin()); }
+    ReverseIterator<ConstIterator> rbegin() const { return ReverseIterator<ConstIterator>(end()); }
+    ReverseIterator<ConstIterator> rend() const { return ReverseIterator<ConstIterator>(begin()); }
+    ReverseIterator<ConstIterator> rcbegin() const { return ReverseIterator<ConstIterator>(end()); }
+    ReverseIterator<ConstIterator> rcend() const { return ReverseIterator<ConstIterator>(begin()); }
+
     // MEMEBER FUNCTIONS
 
-    size_t size() const { return size;      }
+    size_t length() const { return size;      }
     bool empty()    const { return size == 0; }
     T front()       const { return array[0];  }
     T back()    const { return array[size-1]; }
@@ -128,7 +215,7 @@ T Vector<T>::at(int index) {
 }
 
 template <class T>
-void Vector<T>::resize(int n, T value = 0) {
+void Vector<T>::resize(int n, T value) {
     if(n < (int)capacity) {
         if(n < (int)size) {
             while(size > n) {
@@ -145,7 +232,7 @@ void Vector<T>::resize(int n, T value = 0) {
     }
     else {
         capacity = n;
-        T* newArray = T[capacity];
+        T* newArray = new T[capacity];
 
         for(size_t i = 0; i < capacity; i++) {
             if(i < size) newArray[i] = array[i];
@@ -164,7 +251,7 @@ void Vector<T>::reserve(int n) {
     }
     else {
         capacity = n;
-        T* newArray = T[capacity];
+        T* newArray = new T[capacity];
 
         for(size_t i = 0; i < size; i++) {
             newArray[i] = array[i];
@@ -179,7 +266,7 @@ template <class T>
 void Vector<T>::shrink_to_fit() {
     if(capacity == size) return;
     capacity = size;
-    T* newArray = T[capacity];
+    T* newArray = new T[capacity];
 
     for(size_t i = 0; i < size; i++) {
         newArray[i] = array[i];
