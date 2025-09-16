@@ -158,6 +158,8 @@ public:
 
     void insert(const Iterator& iter, const T& val);
     void insert(const Iterator& iter, int count, const T& val);
+    void erase(const Iterator& iter);
+    void erase(const Iterator& first, const Iterator& last);
 
     // OVELOADED OPERATORS
     T& operator[](int index);
@@ -321,6 +323,39 @@ void Vector<T>::insert(const Iterator& iter, int count, const T& val) {
         array = newArray;
     }
     size += count;
+}
+
+template <class T>
+void Vector<T>::erase(const Iterator& iter) {
+    Iterator it = begin();
+    while(it != iter) it++;
+    if(it >= end()) {
+        std::cerr << "Unknown memory access" << std::endl;
+        std::exit(EXIT_FAILURE);
+    }
+    while(it + 1 != end()) {
+        *(it) = *(it + 1);
+        it++;
+    }
+    size--;
+}
+
+template <class T>
+void Vector<T>::erase(const Iterator& first, const Iterator& last) {
+    Iterator it = begin();
+    while(it != first) it++;
+    if(it >= end()) {
+        std::cerr << "Unknown memory access" << std::endl;
+        std::exit(EXIT_FAILURE);
+    }
+    Iterator next_it = it + 1;
+    while(next_it != end() && next_it != last) next_it++;
+    while(next_it != end()) {
+        *(it) = *(next_it);
+        it++;
+        next_it++;
+    }
+    size = it - begin();
 }
 
 template <class T>
