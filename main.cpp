@@ -7,8 +7,9 @@ int main() {
     std::cout << "KOHLI IS THE KING." << std::endl;
 
     Vector<int> first = {3, 2, 1, 4, 6};
-    // first.push_back(7);
-    first.insert(first.begin() + 1, 5);
+    Vector<int> second = {3, 2, 1, 4, 6};
+
+    std::cout << (first <= second) << std::endl;
     
     // std::sort(first.begin(), first.end());
     for(Vector<int>::Iterator it = first.begin(); it != first.end(); it++) {
