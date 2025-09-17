@@ -1,6 +1,9 @@
 # pragma once
 #include <iterator>
 #include <cstddef> 
+#include <memory>
+#include <utility>
+#include <algorithm>
 #include "ReverseIterator.hpp"
 
 template <class T>
@@ -160,6 +163,14 @@ public:
     void insert(const Iterator& iter, int count, const T& val);
     void erase(const Iterator& iter);
     void erase(const Iterator& first, const Iterator& last);
+    void assign(int count, const T& val);
+    void assign(std::initializer_list<T> ilist);
+
+    template <class InputIterator>
+    void assign(InputIterator first, InputIterator last);
+
+    template <class... Args>
+    void emplace_back(Args&&... args);
 
     // OVELOADED OPERATORS
     T& operator[](int index);
@@ -167,6 +178,13 @@ public:
 
     Vector<T>& operator=(const Vector<T>& other);  /* Copy Assignment Operator */
     Vector<T>& operator=(Vector&& other) noexcept; /* Move Assignment Operator */
+
+    template <class U> friend bool operator==(const Vector<U>& lhs, const Vector<U>& rhs);
+    template <class U> friend bool operator!=(const Vector<U>& lhs, const Vector<U>& rhs);
+    template <class U> friend bool operator<(const Vector<U>& lhs, const Vector<U>& rhs);
+    template <class U> friend bool operator<=(const Vector<U>& lhs, const Vector<U>& rhs);
+    template <class U> friend bool operator>(const Vector<U>& lhs, const Vector<U>& rhs);
+    template <class U> friend bool operator>=(const Vector<U>& lhs, const Vector<U>& rhs);
 
     // Destructors
     ~Vector() {
@@ -359,6 +377,64 @@ void Vector<T>::erase(const Iterator& first, const Iterator& last) {
 }
 
 template <class T>
+void Vector<T>::assign(int count, const T& val) {
+    if(capacity < count) {
+        capacity = count;
+        T* newArray = new T[capacity];
+        delete[] array;
+        array = newArray;
+    }
+
+    for(int i = 0; i < count; i++) {
+        array[i] = val;
+    }
+    size = count;
+}
+
+template <class T>
+template <class InputIterator>
+void Vector<T>::assign(InputIterator first, InputIterator last) {
+    int count = last - first;
+    if(capacity < count) {
+        capacity = count;
+        T* newArray = new T[capacity];
+        delete[] array;
+        array = newArray;
+    }
+
+    Iterator it = begin();
+    for(int i = 0; i < count; i++) {
+        *(it + i) = *first;
+        first++;
+    }
+    size = count;
+}
+
+template <class T>
+void Vector<T>::assign(std::initializer_list<T> ilist) {
+    assign(ilist.begin(), ilist.end());
+}
+
+template <class T>
+template <class... Args>
+void Vector<T>::emplace_back(Args&&... args) {
+    if(size == capacity) {
+        capacity = (capacity == 0 ? 1 : capacity * 2);
+        T* newArray = new T[capacity];
+
+        for(size_t i = 0; i < size; i++) {
+            newArray[i] = array[i];
+        }
+
+        delete[] array;
+        array = newArray;
+    }
+
+    new (array + size) T(std::forward<Args>(args)...);
+    size++;
+}
+
+template <class T>
 T& Vector<T>::operator[](int index) {
     if(index >= size) {
         std::cerr << "Index " << index << " out of bound." << std::endl;
@@ -411,3 +487,33 @@ Vector<T>& Vector<T>::operator=(Vector&& other) noexcept {
     
     return *this;
 }
+
+template <class T>
+bool operator==(const Vector<T>& lhs, const Vector<T>& rhs) {
+    return lhs.size == rhs.size && std::equal(lhs.begin(), lhs.end(), rhs.begin());
+}  
+
+template <class T>
+bool operator!=(const Vector<T>& lhs, const Vector<T>& rhs) {
+    return !(lhs == rhs);
+}  
+
+template <class T>
+bool operator<(const Vector<T>& lhs, const Vector<T>& rhs) {
+    return std::lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
+}   
+
+template <class T>
+bool operator<=(const Vector<T>& lhs, const Vector<T>& rhs) {
+    return !(rhs < lhs);
+}   
+
+template <class T>
+bool operator>(const Vector<T>& lhs, const Vector<T>& rhs) {
+    return (rhs < lhs);
+}   
+
+template <class T>
+bool operator>=(const Vector<T>& lhs, const Vector<T>& rhs) {
+    return !(lhs < rhs);
+}   
