@@ -17,10 +17,10 @@ public:
     // CONSTRUCTORS
     
     // 1. Default Constructor
-    Vector() : size(0), capacity(0) {}
+    Vector() : array(nullptr), size(0), capacity(0) {}
 
     // 2. Constructor
-    Vector(int n, T elem = 0) : size(n), capacity(n) {
+    Vector(int n, const T& elem = T()) : size(n), capacity(n) {
         array = new T[capacity];
         for(int i = 0; i < (int)size; i++) {
             array[i] = elem;
@@ -154,7 +154,7 @@ public:
     void push_back(const T& elem);
     void pop_back();
     void clear();
-    T at(int index);
+    T& at(int index);
     void resize(int n, const T& value = 0);
     void reserve(int n);
     void shrink_to_fit();
@@ -231,7 +231,7 @@ void Vector<T>::clear() {
 }
 
 template <class T>
-T Vector<T>::at(int index) {
+T& Vector<T>::at(int index) {
     return array[index];
 }
 
@@ -430,7 +430,7 @@ void Vector<T>::emplace_back(Args&&... args) {
         array = newArray;
     }
 
-    new (array + size) T(std::forward<Args>(args)...);
+    new (array + size) T(std::forward<Args>(args)...);   // placement new 
     size++;
 }
 
