@@ -77,6 +77,194 @@ public:
     }
 
 
+    // ITERATOR
+    struct Iterator {
+        using iterator_category = std::bidirectional_iterator_tag;
+        using difference_type   = std::ptrdiff_t;
+        using value_type        = std::pair<Key, T>;
+        using pointer           = value_type*;
+        using reference         = value_type&;
+
+        Vector<std::tuple<Node*, int, Key>> ahead;
+        Vector<std::tuple<Node*, int, Key>> back;
+        value_type current;
+
+
+        Iterator(Node* root, int value = 0) {
+            if(root) push(root, "");
+            if(value == 0) ++(*this);
+            else pushAll();
+        }
+
+        reference operator*() { return current; }
+        pointer operator->() { return this; }
+
+        Iterator& operator++() { 
+            while(!ahead.empty()) {
+                auto [node, i, prefix] = ahead.back();
+                ahead.pop_back();
+
+                if(node->isEndOfWord) {
+                    back.push_back({node, i, prefix});
+                    current = {prefix, node->value};
+                    push(node, prefix);
+                    return *this;
+                }
+
+                push(node, prefix);
+            }
+            
+            current = {};
+            return *this;
+        }
+
+        Iterator& operator--() {
+            if(!back.empty()) {
+                if(current != std::pair<Key, T>{}) {
+                    auto next = back.back();
+                    back.pop_back();
+                    ahead.push_back(next);
+                }
+
+                auto [node, i, prefix] = back.back();
+                current = {prefix, node->value};
+                push(node, prefix);
+                return *this;
+            }
+
+            current = {};
+            return *this;
+        }
+
+        Iterator operator++(int) { Iterator tmp = *this; ++(*this); return tmp; }
+        Iterator operator--(int) { Iterator tmp = *this; --(*this); return tmp; }
+
+    private:
+        void push(Node* node, std::string prefix) {
+            for(int i = 25; i >= 0; i--) {
+                if(node->children[i]) {
+                    ahead.push_back({node->children[i], i, prefix + char('a' + i)});
+                }
+            }
+        }
+
+        Iterator& pushAll() {
+            while(!ahead.empty()) {
+                auto [node, i, prefix] = ahead.back();
+                ahead.pop_back();
+
+                if(node->isEndOfWord) {
+                    back.push_back({node, i, prefix});
+                    current = {prefix, node->value};
+                    push(node, prefix);
+                }
+
+                push(node, prefix);
+            }
+
+            current = {};
+            return *this;
+        }
+    };
+
+    // Const Iterator
+    struct ConstIterator {
+        using iterator_category = std::bidirectional_iterator_tag;
+        using difference_type   = std::ptrdiff_t;
+        using value_type        = std::pair<Key, T>;
+        using pointer           = value_type*;
+        using reference         = value_type&;
+
+        Vector<std::tuple<Node*, int, Key>> ahead;
+        Vector<std::tuple<Node*, int, Key>> back;
+        value_type current;
+
+
+        ConstIterator(Node* root, int value = 0) {
+            if(root) push(root, "");
+            if(value == 0) ++(*this);
+            else pushAll();
+        }
+
+        reference operator*() { return current; }
+        pointer operator->() { return this; }
+
+        ConstIterator& operator++() { 
+            while(!ahead.empty()) {
+                auto [node, i, prefix] = ahead.back();
+                ahead.pop_back();
+
+                if(node->isEndOfWord) {
+                    back.push_back({node, i, prefix});
+                    current = {prefix, node->value};
+                    push(node, prefix);
+                    return *this;
+                }
+
+                push(node, prefix);
+            }
+            
+            current = {};
+            return *this;
+        }
+
+        ConstIterator& operator--() {
+            if(!back.empty()) {
+                if(current != std::pair<Key, T>{}) {
+                    auto next = back.back();
+                    back.pop_back();
+                    ahead.push_back(next);
+                }
+
+                auto [node, i, prefix] = back.back();
+                current = {prefix, node->value};
+                push(node, prefix);
+                return *this;
+            }
+
+            current = {};
+            return *this;
+        }
+
+        ConstIterator operator++(int) { ConstIterator tmp = *this; ++(*this); return tmp; }
+        ConstIterator operator--(int) { ConstIterator tmp = *this; --(*this); return tmp; }
+
+    private:
+        void push(Node* node, std::string prefix) {
+            for(int i = 25; i >= 0; i--) {
+                if(node->children[i]) {
+                    ahead.push_back({node->children[i], i, prefix + char('a' + i)});
+                }
+            }
+        }
+
+        ConstIterator& pushAll() {
+            while(!ahead.empty()) {
+                auto [node, i, prefix] = ahead.back();
+                ahead.pop_back();
+
+                if(node->isEndOfWord) {
+                    back.push_back({node, i, prefix});
+                    current = {prefix, node->value};
+                    push(node, prefix);
+                }
+
+                push(node, prefix);
+            }
+
+            current = {};
+            return *this;
+        }
+    };
+
+    Iterator begin()  { return Iterator(root); }                         
+    Iterator end()    { return Iterator(root, 1); }
+    ConstIterator begin()  const { return ConstIterator(root); }             
+    ConstIterator end()    const { return ConstIterator(root, 1); }
+    ConstIterator cbegin() const { return ConstIterator(root); }         
+    ConstIterator cend()   const { return ConstIterator(root, 1 ); }
+
+
     // MEMBER FUNCTIONS
     size_t length() const { return keyCount;      }
     bool empty()    const { return keyCount == 0; }
